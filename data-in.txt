@@ -1,8 +1,3 @@
-# HTTPTester
-test http api 
-
-useage sample: data-in.txt
-```
 #headers
 Accept: application/json, text/javascript, */*; q=0.01
 Accept-Encoding: gzip, deflate
@@ -25,19 +20,3 @@ http://
 /http/domain/queryDomainList.do
 #servers
 localhost
-192.168.0.1
-```
-input file:
-
-put data-in.txt in the root directory in ide or specify as the first args when execute with command line
-
-##sysConfigs
-###durationSecd
-the duration you want to execute
-###threads
-the threads count you want to execute
-###intervalSecd
-the  interval time in each thread 
-###logResult
-whether log the execute result,use true or false
-
