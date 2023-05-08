@@ -31,13 +31,13 @@ input file:
 
 put data-in.txt in the root directory in ide or specify as the first args when execute with command line
 
-##sysConfigs
-###durationSecd
+## sysConfigs
+### durationSecd
 the duration you want to execute
-###threads
+### threads
 the threads count you want to execute
-###intervalSecd
+### intervalSecd
 the  interval time in each thread 
-###logResult
+### logResult
 whether log the execute result,use true or false
 
