@@ -142,9 +142,9 @@ public class TestHttpInvoker {
 
         private void setHttpReqContext(HttpRequestBase request, Map<String, String> headers) {
             if (headers != null) {
-                System.out.println("####################################### request headers ################################################################################################################################");
+                logger.info("####################################### request headers ################################################################################################################################");
                 for (Map.Entry<String, String> entry : headers.entrySet()) {
-                    System.out.println(entry.getKey() + ": " + entry.getValue());
+                    logger.info(entry.getKey() + ": " + entry.getValue());
                     request.addHeader(entry.getKey(), entry.getValue());
                 }
             }
