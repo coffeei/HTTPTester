@@ -12,9 +12,6 @@
         <java.version>1.8</java.version>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <spring.framework.version>5.3.10</spring.framework.version>
-        <fastjson.version>1.2.78</fastjson.version>
-        <javax.servlet.version>4.0.1</javax.servlet.version>
         <httpclient.version>4.5.12</httpclient.version>
         <org.slf4j.version>1.7.32</org.slf4j.version>
         <org.apache.logging.log4j.version>2.17.0</org.apache.logging.log4j.version>
@@ -37,11 +34,6 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>${httpclient.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.jd.zta</groupId>
-            <artifactId>zta-api</artifactId>
-            <version>1.0-SNAPSHOT</version>
         </dependency>
 
     </dependencies>
