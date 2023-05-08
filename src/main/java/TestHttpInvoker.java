@@ -83,20 +83,6 @@ public class TestHttpInvoker {
             }
         }
 
-        private static final String EQS = "=";
-        private static final String QUE = "?";
-        private static final String AND = "&";
-
-        /**
-         * 默认压缩格式，暂时不做开放设置
-         */
-        private static final String DEFAULT_COMPRESS_TYPE = "gzip";
-
-        /**
-         * 默认最小压缩长度，暂时不做开放设置
-         */
-        private static final int DEFAULT_GZIP_MIN_LENGTH = 100 * 1024;
-
         /**
          * 从连接池获取连接的超时时间
          */
