@@ -181,7 +181,7 @@ public class TestHttpInvoker {
                             HeaderElement he = it.nextElement();
                             String param = he.getName();
                             String value = he.getValue();
-                            System.out.println("KeepAlive====" + param + "=" + value);
+                            logger.info("KeepAlive===={} = {}" ,param, value);
                             if (value != null && param.equalsIgnoreCase("timeout")) {
                                 try {
                                     return Long.parseLong(value) * 1000;
@@ -190,12 +190,7 @@ public class TestHttpInvoker {
                                 }
                             }
                         }
-                        HttpHost target = (HttpHost) httpContext.getAttribute(HttpClientContext.HTTP_TARGET_HOST);
-                        if ("volvoid.cn.qa.volvocars.com".equalsIgnoreCase(target.getHostName().trim()) || "volvoid.cn.volvocars.com".equalsIgnoreCase(target.getHostName().trim())) {
-                            return 15 * 1000;
-                        } else {
-                            return 300 * 1000;
-                        }
+                        return 300 * 1000;
                     }
                 };
                 httpClient = HttpClients.custom().setConnectionManager(manager).setRetryHandler(retryHandler).setKeepAliveStrategy(keepAliveStrategy).build();
