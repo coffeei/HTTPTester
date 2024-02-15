@@ -378,9 +378,9 @@ public class TestHttpInvoker {
                             }
                             logger.info("sub thread {} finish", Thread.currentThread().getName());
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            logger.error("sub thread error",e);
                         } catch (Exception ex) {
-                            ex.printStackTrace();
+                            logger.error("sub thread error",ex);
                         } finally {
                             latch.countDown();
                         }
@@ -390,9 +390,9 @@ public class TestHttpInvoker {
             }
 
             try {
-                latch.await();//阻塞当前线程，直到计数器的值为0
+                latch.await();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.error("exec error",e);
             }
             return execCount.get();
         }
