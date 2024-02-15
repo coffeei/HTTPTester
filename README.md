@@ -1,7 +1,8 @@
 # HTTPTester
-test http api 
+invoke http api in a multithreaded fashion
 
-useage sample: data-in.txt
+##useage 
+put the  config file named data-in.txt in the root directory in your IDE ,and run the TestHttpInvoker class.
 ```
 #headers
 Accept: application/json, text/javascript, */*; q=0.01
@@ -12,6 +13,7 @@ Connection: keep-alive
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36
 X-Requested-With: XMLHttpRequest
+Cookies: sessionid=123456;token=xxxxxxxx;
 #requestBody
 _search=false&nd=1683287157886&rows=15&page=1&sidx=updateTime&sord=desc
 #sysConfigs
@@ -32,10 +34,15 @@ http://
 localhost
 192.168.0.1
 ```
-input file:
-
-put data-in.txt in the root directory in ide or specify as the first args when execute with command line
-
+some strings started with # like belows are keywords, those can not be use in your request headers
+```
+#headers
+#requestBody
+#sysConfigs
+#protocol
+#url
+#servers
+```
 ## sysConfigs
 ### durationSecd
 the duration you want to execute
@@ -56,3 +63,20 @@ maxTotalConnection  with the apache http client
 ### maxPerRouteConnection
 maxPerRouteConnection  with the apache http client
 
+##dependency
+```
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>log4j-over-slf4j</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
+```

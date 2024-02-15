@@ -141,7 +141,6 @@ public class TestHttpInvoker {
                     request.addHeader(entry.getKey(), entry.getValue());
                 }
             }
-            //TODO set cookies
         }
 
         public void init() {
