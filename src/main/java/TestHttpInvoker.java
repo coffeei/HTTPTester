@@ -181,7 +181,7 @@ public class TestHttpInvoker {
                 try {
                     httpClient.close();
                 } catch (IOException e) {
-                    logger.error("Destroy lop client error", e);
+                    logger.error("Destroy client error", e);
                 }
             }
         }
