@@ -1,7 +1,7 @@
 # HTTPTester
 invoke http api in a multithreaded fashion
 
-##useage 
+## useage 
 put the  config file named data-in.txt in the root directory in your IDE ,and run the TestHttpInvoker class.
 ```
 #headers
@@ -29,10 +29,11 @@ maxPerRouteConnection:60
 #protocol
 http://
 #url
-/http/domain/queryDomainList.do
+/http/domain/queryDomainList.do?param1=111&param2=456
 #servers
 localhost
-192.168.0.1
+192.168.0.120
+192.168.1.110:8080
 ```
 some strings started with # like belows are keywords, those can not be use in your request headers
 ```
@@ -63,7 +64,7 @@ maxTotalConnection  with the apache http client
 ### maxPerRouteConnection
 maxPerRouteConnection  with the apache http client
 
-##dependency
+## maven dependency
 ```
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
