@@ -19,6 +19,11 @@ durationSecd:10
 threads:10
 intervalSecd:1
 logResult:true
+connectionRequestTimeout:3000
+connectTimeout:10000
+socketTimeout:20000
+maxTotalConnection:60
+maxPerRouteConnection:60
 #protocol
 http://
 #url
@@ -37,7 +42,17 @@ the duration you want to execute
 ### threads
 the threads count you want to execute
 ### intervalSecd
-the  interval time in each thread 
+the  interval time of the request in each thread 
 ### logResult
 whether log the execute result,use true or false
+### connectionRequestTimeout
+connectionRequestTimeout with the apache http client
+### connectTimeout
+connectTimeout  with the apache http client
+### socketTimeout
+socketTimeout  with the apache http client
+### maxTotalConnection
+maxTotalConnection  with the apache http client
+### maxPerRouteConnection
+maxPerRouteConnection  with the apache http client
 

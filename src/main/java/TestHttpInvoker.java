@@ -5,7 +5,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.entity.StringEntity;
@@ -83,24 +82,18 @@ public class TestHttpInvoker {
             }
         }
 
-        /**
-         * 从连接池获取连接的超时时间
-         */
+
         private int connectionRequestTimeout = 3 * 1000;
 
-        /**
-         * 链接建立的超时时间
-         */
         private int connectTimeout = 10 * 1000;
 
-        /**
-         * 响应超时时间，超过此时间不再读取响应
-         */
         private int socketTimeout = 20 * 1000;
 
-        private int maxConnection = 60;
+        private int maxTotalConnection = 60;
 
-        private boolean initialized;
+        private int maxPerRouteConnection = 60;
+
+        private volatile boolean initialized;
 
         private CloseableHttpClient httpClient;
 
@@ -148,14 +141,14 @@ public class TestHttpInvoker {
                     request.addHeader(entry.getKey(), entry.getValue());
                 }
             }
-            //TODO 设置cookie
+            //TODO set cookies
         }
 
         public void init() {
             if (!initialized) {
                 PoolingHttpClientConnectionManager manager = new PoolingHttpClientConnectionManager();
-                manager.setMaxTotal(maxConnection);
-                manager.setDefaultMaxPerRoute(maxConnection);
+                manager.setMaxTotal(maxTotalConnection);
+                manager.setDefaultMaxPerRoute(maxPerRouteConnection);
                 HttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler(0, false);
 
                 ConnectionKeepAliveStrategy keepAliveStrategy = new ConnectionKeepAliveStrategy() {
@@ -167,7 +160,7 @@ public class TestHttpInvoker {
                             HeaderElement he = it.nextElement();
                             String param = he.getName();
                             String value = he.getValue();
-                            logger.info("KeepAlive===={} = {}" ,param, value);
+                            logger.info("KeepAlive===={} = {}", param, value);
                             if (value != null && param.equalsIgnoreCase("timeout")) {
                                 try {
                                     return Long.parseLong(value) * 1000;
@@ -206,12 +199,12 @@ public class TestHttpInvoker {
             this.socketTimeout = socketTimeout;
         }
 
-        public void setMaxConnection(int maxConnection) {
-            this.maxConnection = maxConnection;
+        public void setMaxTotalConnection(int maxTotalConnection) {
+            this.maxTotalConnection = maxTotalConnection;
         }
 
-        public void setInitialized(boolean initialized) {
-            this.initialized = initialized;
+        public void setMaxPerRouteConnection(int maxPerRouteConnection) {
+            this.maxPerRouteConnection = maxPerRouteConnection;
         }
     }
 
@@ -224,11 +217,6 @@ public class TestHttpInvoker {
         String protocol = null;
         String url = null;
         List<String> servers = new ArrayList<>();
-
-        public Map<String, String> getSysConfigs() {
-            return sysConfigs;
-        }
-
         Map<String, String> sysConfigs = new HashMap<>();
 
         public String getUrl() {
@@ -290,6 +278,10 @@ public class TestHttpInvoker {
             sysConfigs.put(key, value);
         }
 
+        public Map<String, String> getSysConfigs() {
+            return sysConfigs;
+        }
+
         public Map<String, String> getHeaders() {
             return headers;
         }
@@ -324,6 +316,7 @@ public class TestHttpInvoker {
         Boolean logResult;
         AtomicLong execCount = new AtomicLong(0);
 
+
         public Executor(HTTPReqConfigData configData) {
             Map<String, String> sysConfig = configData.getSysConfigs();
             threads = Integer.parseInt(sysConfig.getOrDefault("threads", "1"));
@@ -332,6 +325,11 @@ public class TestHttpInvoker {
             logResult = Boolean.parseBoolean(sysConfig.getOrDefault("logResult", "true"));
             service = Executors.newFixedThreadPool(threads);
             latch = new CountDownLatch(threads);
+            httpClient.setConnectionRequestTimeout(Integer.parseInt(sysConfig.getOrDefault("connectionRequestTimeout", "3000")));
+            httpClient.setConnectTimeout(Integer.parseInt(sysConfig.getOrDefault("connectTimeout", "10000")));
+            httpClient.setSocketTimeout(Integer.parseInt(sysConfig.getOrDefault("socketTimeout", "20000")));
+            httpClient.setMaxTotalConnection(Integer.parseInt(sysConfig.getOrDefault("maxTotalConnection", "60")));
+            httpClient.setMaxPerRouteConnection(Integer.parseInt(sysConfig.getOrDefault("maxPerRouteConnection", "60")));
         }
 
         public void destory() {
@@ -357,7 +355,7 @@ public class TestHttpInvoker {
                 execCount.incrementAndGet();
             }
             if (logResult) {
-                writer.println("子线程" + Thread.currentThread().getName() +" Total:" + configData.getServers().size() + ",cost:" + (System.currentTimeMillis() - current) + " ms");
+                writer.println("sub thread" + Thread.currentThread().getName() + " Total:" + configData.getServers().size() + ",cost:" + (System.currentTimeMillis() - current) + " ms");
             }
         }
 
@@ -368,7 +366,7 @@ public class TestHttpInvoker {
                     @Override
                     public void run() {
                         try {
-                            logger.info("子线程 {} 开始执行",Thread.currentThread().getName());
+                            logger.info("sub thread {} start", Thread.currentThread().getName());
                             while (true) {
                                 //do something
                                 doExecute(configData, writer);
@@ -379,7 +377,7 @@ public class TestHttpInvoker {
                                     Thread.sleep(intervalSecd * 1000);
                                 }
                             }
-                            logger.info("子线程 {} 执行完成",Thread.currentThread().getName());
+                            logger.info("sub thread {} finish", Thread.currentThread().getName());
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         } catch (Exception ex) {
@@ -510,12 +508,12 @@ public class TestHttpInvoker {
                 executor = new Executor(configData);
                 long current = System.currentTimeMillis();
                 Long totalCount = executor.execute(configData, writer);
-                long cost= (System.currentTimeMillis() - current);
+                long cost = (System.currentTimeMillis() - current);
                 writer.println("Total:" + totalCount + ",cost:" + cost + " ms");
-                logger.error("Total:{},cost:{}ms", totalCount,cost);
+                logger.error("Total:{},cost:{}ms", totalCount, cost);
             }
         } finally {
-            if (executor!=null){
+            if (executor != null) {
                 executor.destory();
             }
             if (writer != null) {

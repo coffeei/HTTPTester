@@ -14,6 +14,11 @@ durationSecd:10
 threads:10
 intervalSecd:1
 logResult:true
+connectionRequestTimeout:3000
+connectTimeout:10000
+socketTimeout:20000
+maxTotalConnection:60
+maxPerRouteConnection:60
 #protocol
 http://
 #url
