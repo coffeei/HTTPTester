@@ -42,7 +42,7 @@ the duration you want to execute
 ### threads
 the threads count you want to execute
 ### intervalSecd
-the  interval time of the request in each thread 
+the request  interval time  in each thread 
 ### logResult
 whether log the execute result,use true or false
 ### connectionRequestTimeout
