@@ -27,6 +27,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
+/******
+ *  Copyright (c)  Wenyuan Zeng (coffeei)
+ */
 public class TestHttpInvoker {
     private final Logger logger = LoggerFactory.getLogger(TestHttpInvoker.class);
 
@@ -478,7 +481,7 @@ public class TestHttpInvoker {
         if (logResult) {
             writer.println("[" + index + "]:" + server + " cost:" + cost + " ms :" + result);
         }
-        logger.error("Invoking [{}/{}] {} cost {} ms:{}", index, total, server, cost, result);
+        logger.info("Invoking [{}/{}] {} cost {} ms:{}", index, total, server, cost, result);
     }
 
 
@@ -509,7 +512,7 @@ public class TestHttpInvoker {
                 Long totalCount = executor.execute(configData, writer);
                 long cost = (System.currentTimeMillis() - current);
                 writer.println("Total:" + totalCount + ",cost:" + cost + " ms");
-                logger.error("Total:{},cost:{}ms", totalCount, cost);
+                logger.info("Total:{},cost:{}ms", totalCount, cost);
             }
         } finally {
             if (executor != null) {
