@@ -38,7 +38,7 @@ localhost
 some strings started with # like belows are keywords, those can not be use in your request headers
 ```
 #headers
-#requestBody
+#requestBody or #requestBodyLineFile
 #sysConfigs
 #protocol
 #url
