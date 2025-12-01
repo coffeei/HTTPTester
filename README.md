@@ -16,6 +16,8 @@ X-Requested-With: XMLHttpRequest
 Cookies: sessionid=123456;token=xxxxxxxx;
 #requestBody
 _search=false&nd=1683287157886&rows=15&page=1&sidx=updateTime&sord=desc
+#requestBodyLineFile
+/Users/user1/IdeaProjects/HTTPTesterGithub/data/data-request.txt
 #sysConfigs
 durationSecd:10
 threads:10
@@ -30,6 +32,8 @@ maxPerRouteConnection:60
 http://
 #url
 /http/domain/queryDomainList.do?param1=111&param2=456
+#responseAssertTrueRegExpression
+.*"code":0.*
 #servers
 localhost
 192.168.0.120
@@ -43,6 +47,7 @@ some strings started with # like belows are keywords, those can not be use in yo
 #protocol
 #url
 #servers
+#responseAssertTrueRegExpression
 ```
 ## sysConfigs
 ### durationSecd

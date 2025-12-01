@@ -26,6 +26,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /******
  *  Copyright (c)  Wenyuan Zeng (coffeei)
@@ -230,10 +232,22 @@ public class TestHttpInvoker {
         Map<String, String> cookies = new HashMap<>();
         StringBuilder requestBodyBuffer = new StringBuilder();
         List<String> requestBodyList = new ArrayList<String>();
+        Pattern responseRegExpressionPattern = null;
+
         String protocol = null;
         String url = null;
         List<String> servers = new ArrayList<>();
         Map<String, String> sysConfigs = new HashMap<>();
+
+        public Pattern getResponseRegExpressionPattern() {
+            return this.responseRegExpressionPattern;
+        }
+
+        public void setResponseRegExpression(String responseRegExpression) {
+            if (responseRegExpression != null && !responseRegExpression.isEmpty()) {
+                this.responseRegExpressionPattern = Pattern.compile(responseRegExpression);
+            }
+        }
 
         public String getUrl() {
             return url;
@@ -376,7 +390,7 @@ public class TestHttpInvoker {
             Integer total = configData.getServers().size();
             int index = 0;
             for (String server : configData.getServers()) {
-                run(httpClient, protocol, server, url, headers,requestBody, writer, ++index, total, logResult);
+                run(httpClient,configData, protocol, server, url, headers,requestBody, writer, ++index, total, logResult);
                 execCount.incrementAndGet();
             }
             if (logResult) {
@@ -438,7 +452,7 @@ public class TestHttpInvoker {
     }
 
     private static Set<String> keywords = new HashSet<>(Arrays.asList
-            ("#headers", "#prams", "#cookies", "#requestBody", "#requestBody[1]","#requestBodyLineFile", "#protocol", "#url", "#servers", "#sysConfigs")
+            ("#headers", "#prams", "#cookies", "#requestBody", "#requestBody[1]","#requestBodyLineFile","#responseAssertTrueRegExpression", "#protocol", "#url", "#servers", "#sysConfigs")
     );
     private HttpClient httpClient = null;
 
@@ -489,6 +503,9 @@ public class TestHttpInvoker {
                     case "#requestBodyLineFile":
                         configData.appendRequestBodyLineFile(data);
                         break;
+                    case "#responseAssertTrueRegExpression":
+                        configData.setResponseRegExpression(data);
+                        break;
                     case "#protocol":
                         configData.setProtocol(data.trim());
                         break;
@@ -511,15 +528,27 @@ public class TestHttpInvoker {
         return configData;
     }
 
-    private void run(HttpClient httpClient, String protocol, String server, String url, Map<String, String> headers, String requestBody, PrintWriter writer, Integer index, Integer total, Boolean logResult) throws URISyntaxException, IOException {
+    private void logResult(String server, PrintWriter writer, Integer index, Integer total, Boolean logResult,Long cost,HttpClient.HttpResult result ) throws URISyntaxException, IOException {
+        if (logResult) {
+            writer.println("[" + index + "]:" + server + " cost:" + cost + " ms :" + result);
+        }
+        logger.error("Invoked Response Assert False [{}/{}] {} cost {} ms:{}", index, total, server, cost, result);
+    }
+    private void run(HttpClient httpClient,HTTPReqConfigData config, String protocol, String server, String url, Map<String, String> headers, String requestBody, PrintWriter writer, Integer index, Integer total, Boolean logResult) throws URISyntaxException, IOException {
         URI uri = new URIBuilder(protocol + server + url).setCharset(Consts.UTF_8).build();
         Long current = System.currentTimeMillis();
         HttpClient.HttpResult result = httpClient.execute(uri, requestBody, headers);
         Long cost = (System.currentTimeMillis() - current);
-        if (logResult) {
-            writer.println("[" + index + "]:" + server + " cost:" + cost + " ms :" + result);
+
+        Pattern respPattern = config.getResponseRegExpressionPattern();
+        if (respPattern != null) {
+            Matcher matcher = respPattern.matcher(result.getBody());
+            if (!matcher.matches()) {
+                logResult(server, writer, index, total, logResult, cost, result);
+            }
+        } else {
+            logResult(server, writer, index, total, logResult, cost, result);
         }
-        logger.info("Invoking [{}/{}] {} cost {} ms:{}", index, total, server, cost, result);
     }
 
 
