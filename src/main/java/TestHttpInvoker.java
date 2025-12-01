@@ -32,6 +32,7 @@ public class TestHttpInvoker {
 
     public class HttpClient {
         public class HttpResult {
+            String requestBody;
             Integer status;
             String body;
             Map<String, String> headers;
@@ -66,10 +67,19 @@ public class TestHttpInvoker {
                 this.headers = headers;
             }
 
+            public String getRequestBody() {
+                return requestBody;
+            }
+
+            public void setRequestBody(String requestBody) {
+                this.requestBody = requestBody;
+            }
             @Override
             public String toString() {
                 StringBuilder sb = new StringBuilder();
                 sb.append("status:").append(status).append("\r\n");
+                sb.append("####################################### request body ################################################################################################################################\r\n");
+                sb.append(this.requestBody).append("\r\n");
                 sb.append("####################################### response headers ################################################################################################################################\r\n");
                 for (String key : headers.keySet()
                 ) {
@@ -104,12 +114,13 @@ public class TestHttpInvoker {
                     .setConnectionRequestTimeout(connectionRequestTimeout).build();
         }
 
-        public HttpResult execute(URI uri, StringEntity reqEntity, Map<String, String> headers) throws IOException {
+        public HttpResult execute(URI uri, String requestBody, Map<String, String> headers) throws IOException {
 
             HttpRequestBase httpRequest;
-            if (reqEntity != null) {
+            HttpResult httpResult;
+            if (requestBody != null) {
                 httpRequest = new HttpPost(uri);
-                ((HttpPost) httpRequest).setEntity(reqEntity);
+                ((HttpPost) httpRequest).setEntity(new StringEntity(requestBody, "UTF-8"));
             } else {
                 httpRequest = new HttpGet(uri);
             }
@@ -126,10 +137,12 @@ public class TestHttpInvoker {
                 }
                 if (httpResponse.getEntity() != null) {
                     String body = EntityUtils.toString(httpResponse.getEntity(), Consts.UTF_8);
-                    return new HttpResult(statusCode, body, respHeaders);
+                    httpResult =  new HttpResult(statusCode, body, respHeaders);
                 } else {
-                    return new HttpResult(statusCode, null, respHeaders);
+                    httpResult =  new HttpResult(statusCode, null, respHeaders);
                 }
+                httpResult.setRequestBody(requestBody);
+                return httpResult;
             }
         }
 
@@ -213,6 +226,7 @@ public class TestHttpInvoker {
         Map<String, String> prams = new HashMap<>();
         Map<String, String> cookies = new HashMap<>();
         StringBuilder requestBodyBuffer = new StringBuilder();
+        List<String> requestBodyList = new ArrayList<String>();
         String protocol = null;
         String url = null;
         List<String> servers = new ArrayList<>();
@@ -231,6 +245,20 @@ public class TestHttpInvoker {
 
         public void appendRequestBody(String requestBody) {
             requestBodyBuffer.append(requestBody);
+        }
+
+        public void appendRequestBodyLineFile(String fileName) throws Exception {
+
+            File file = new File(fileName);
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String data = null;
+            try {
+                while ((data = br.readLine()) != null) {
+                    requestBodyList.add(data);
+                }
+            } finally {
+                br.close();
+            }
         }
 
         public void appendOnelineRequestBody(String requestBody) {
@@ -337,24 +365,31 @@ public class TestHttpInvoker {
             }
         }
 
-        private void doExecute(HTTPReqConfigData configData, PrintWriter writer) throws URISyntaxException, IOException {
-            String requestBody = configData.getRequestBody();
+        private  void doSendRequest(HTTPReqConfigData configData,String requestBody,PrintWriter writer) throws URISyntaxException, IOException{
             String protocol = configData.getProtocol();
-            StringEntity reqEntity = null;
-            if (requestBody != null) {
-                reqEntity = new StringEntity(requestBody, "UTF-8");
-            }
             Map<String, String> headers = configData.getHeaders();
             String url = configData.getUrl();
             Long current = System.currentTimeMillis();
             Integer total = configData.getServers().size();
             int index = 0;
             for (String server : configData.getServers()) {
-                run(httpClient, protocol, server, url, headers, reqEntity, writer, ++index, total, logResult);
+                run(httpClient, protocol, server, url, headers,requestBody, writer, ++index, total, logResult);
                 execCount.incrementAndGet();
             }
             if (logResult) {
                 writer.println("sub thread" + Thread.currentThread().getName() + " Total:" + configData.getServers().size() + ",cost:" + (System.currentTimeMillis() - current) + " ms");
+            }
+        }
+
+        private void doExecute(HTTPReqConfigData configData, PrintWriter writer) throws Exception {
+            if (configData.requestBodyList.isEmpty()) {
+                String requestBody = configData.getRequestBody();
+                doSendRequest(configData, requestBody, writer);
+            } else {
+                List<String> requestBodyList = configData.requestBodyList;
+                for (String requestBody : requestBodyList) {
+                    doSendRequest(configData, requestBody, writer);
+                }
             }
         }
 
@@ -400,7 +435,7 @@ public class TestHttpInvoker {
     }
 
     private static Set<String> keywords = new HashSet<>(Arrays.asList
-            ("#headers", "#prams", "#cookies", "#requestBody", "#requestBody[1]", "#protocol", "#url", "#servers", "#sysConfigs")
+            ("#headers", "#prams", "#cookies", "#requestBody", "#requestBody[1]","#requestBodyLineFile", "#protocol", "#url", "#servers", "#sysConfigs")
     );
     private HttpClient httpClient = null;
 
@@ -448,6 +483,9 @@ public class TestHttpInvoker {
                     case "#requestBody[1]":
                         configData.appendOnelineRequestBody(data);
                         break;
+                    case "#requestBodyLineFile":
+                        configData.appendRequestBodyLineFile(data);
+                        break;
                     case "#protocol":
                         configData.setProtocol(data.trim());
                         break;
@@ -470,10 +508,10 @@ public class TestHttpInvoker {
         return configData;
     }
 
-    private void run(HttpClient httpClient, String protocol, String server, String url, Map<String, String> headers, StringEntity reqEntity, PrintWriter writer, Integer index, Integer total, Boolean logResult) throws URISyntaxException, IOException {
+    private void run(HttpClient httpClient, String protocol, String server, String url, Map<String, String> headers, String requestBody, PrintWriter writer, Integer index, Integer total, Boolean logResult) throws URISyntaxException, IOException {
         URI uri = new URIBuilder(protocol + server + url).setCharset(Consts.UTF_8).build();
         Long current = System.currentTimeMillis();
-        HttpClient.HttpResult result = httpClient.execute(uri, reqEntity, headers);
+        HttpClient.HttpResult result = httpClient.execute(uri, requestBody, headers);
         Long cost = (System.currentTimeMillis() - current);
         if (logResult) {
             writer.println("[" + index + "]:" + server + " cost:" + cost + " ms :" + result);
